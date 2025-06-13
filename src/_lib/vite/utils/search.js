@@ -56,7 +56,9 @@ export async function buildIndex({ baseDir, cacheDir, }) {
         // TODO
         // ...options.miniSearch?.options,
     });
-    await index.addAllAsync(documents.flat());
+    const documentsById = new Map(documents.flat().map((doc) => [doc.id, doc]));
+    const uniqueDocumentsArray = Array.from(documentsById.values());
+    await index.addAllAsync(uniqueDocumentsArray);
     debug(`vocs:search > indexed ${pagesPaths.length} files`);
     return index;
 }

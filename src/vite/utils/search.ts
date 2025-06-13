@@ -21,6 +21,16 @@ const limit = pLimit(30)
 
 export const debug = debug_('vocs:search')
 
+type Document = {
+  id: string
+  href: string
+  html: string
+  isPage: boolean
+  text: string
+  title: string
+  titles: string[]
+}
+
 export async function buildIndex({
   baseDir,
   cacheDir,
@@ -35,7 +45,7 @@ export async function buildIndex({
 
   const documents = await Promise.all(
     pagesPaths.map((pagePath) =>
-      limit(async (pagePath) => {
+      limit(async (pagePath): Promise<Document[]> => {
         const mdx = readFileSync(pagePath, 'utf-8')
         const key = `index.${hash(pagePath)}`
         const pageCache = cache.get(key) ?? {}
@@ -80,8 +90,10 @@ export async function buildIndex({
     // TODO
     // ...options.miniSearch?.options,
   })
-  
-  await index.addAllAsync(documents.flat())
+  const documentsById = new Map(documents.flat().map((doc) => [doc.id, doc]))
+  const uniqueDocumentsArray = Array.from(documentsById.values())
+
+  await index.addAllAsync(uniqueDocumentsArray)
 
   debug(`vocs:search > indexed ${pagesPaths.length} files`)
 
