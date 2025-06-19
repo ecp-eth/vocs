@@ -80,6 +80,7 @@ export async function buildIndex({
     // TODO
     // ...options.miniSearch?.options,
   })
+  
   await index.addAllAsync(documents.flat())
 
   debug(`vocs:search > indexed ${pagesPaths.length} files`)
@@ -138,7 +139,11 @@ export function getDocId(baseDir: string, file: string) {
 }
 
 const headingRegex = /<h(\d*).*?>(.*?<a.*? href=".*?".*?>.*?<\/a>)<\/h\1>/gi
-const headingContentRegex = /(.*?)<a.*? href=".*?#(.*?)".*?>.*?<\/a>/i
+// Extracts heading content and anchor ID from heading HTML.
+// Matches the LAST anchor tag with a hash in href (the heading's own anchor link),
+// ignoring any markdown links with hashes within the heading content.
+// Group 1: heading content before the anchor, Group 2: anchor ID after the #
+const headingContentRegex = /(.*)<a[^>]*? href="[^"]*?#([^"]*?)"[^>]*?>.*?<\/a>$/i
 
 type PageSection = {
   anchor: string
